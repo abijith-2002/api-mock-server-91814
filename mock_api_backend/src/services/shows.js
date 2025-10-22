@@ -93,7 +93,7 @@ class ShowsService {
     const baseUrl = this.buildBaseUrl(req);
     return items.map(({ name, file }) => ({
       name,
-      poster: `${baseUrl}/media/${file}`,
+      poster: `${baseUrl}/images/${file}`,
     }));
   }
 }

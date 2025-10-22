@@ -48,7 +48,7 @@ router.get('/', healthController.check.bind(healthController));
  *         poster:
  *           type: string
  *           description: Dynamic URL to the poster image
- *           example: https://example.com/media/bcs.jpg
+ *           example: https://example.com/images/bcs.jpg
  */
 
 /**

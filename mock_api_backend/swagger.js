@@ -7,7 +7,7 @@ const options = {
       title: 'OTT Mock API',
       version: '1.0.0',
       description:
-        'Mock API for OTT app categories. Poster URLs are dynamically generated based on the request host.',
+        'Mock API for OTT app categories. Poster URLs are dynamically generated based on the request host. Static images are served from the /images path (e.g., /images/bcs.jpg).',
     },
     tags: [
       { name: 'Health', description: 'Service health check' },
