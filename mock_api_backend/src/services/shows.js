@@ -75,6 +75,8 @@ class ShowsService {
    * @returns {string}
    */
   buildBaseUrl(req) {
+    // When behind a proxy (e.g., VS Code preview), express' trust proxy and req.secure/req.get('host')
+    // should reflect the client-facing protocol and host.
     const protocol = req.secure ? 'https' : req.protocol;
     const host = req.get('host'); // includes port if present
     return `${protocol}://${host}`;

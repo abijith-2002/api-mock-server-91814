@@ -1,6 +1,7 @@
 const cors = require('cors');
 const express = require('express');
 const path = require('path');
+const fs = require('fs');
 const routes = require('./routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../swagger');
@@ -47,15 +48,24 @@ app.use('/docs', swaggerUi.serve, (req, res, next) => {
 app.use(express.json());
 
 /**
+ * Determine the images directory. Prefer resolving from the project root (process.cwd()),
+ * falling back to path based on __dirname in case the working directory changes.
+ */
+const imagesDirCwd = path.resolve(process.cwd(), 'mock_api_backend', 'images');
+const imagesDirLocal = path.join(__dirname, '..', 'images');
+const resolvedImagesDir = fs.existsSync(imagesDirCwd) ? imagesDirCwd : imagesDirLocal;
+
+/**
  * PUBLIC_INTERFACE
  * Serve static images from /images mapped to images directory at project root (mock_api_backend/images).
  * This provides stable URLs like /images/<filename>.
+ * Ensure static is mounted BEFORE API routes.
  */
 app.use(
   '/images',
-  express.static(path.join(__dirname, '..', 'images'), {
+  express.static(resolvedImagesDir, {
     maxAge: '1d',
-    extensions: ['jpg', 'jpeg', 'png', 'gif'],
+    extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     // Set headers for caching and content type safety
     setHeaders: (res, filePath) => {
       res.setHeader('Cache-Control', 'public, max-age=86400');
@@ -72,6 +82,37 @@ app.use(
     },
   })
 );
+
+/**
+ * PUBLIC_INTERFACE
+ * Temporary debug endpoint to verify static image directory resolution.
+ * Returns details about the resolved directory, existence of certain files, and a small listing.
+ */
+app.get('/__debug/static-check', (req, res) => {
+  try {
+    const sampleFiles = ['you.jpg', 'bcs.jpg', 'the_office.jpg'];
+    const dirExists = fs.existsSync(resolvedImagesDir) && fs.statSync(resolvedImagesDir).isDirectory();
+    const listing = dirExists ? fs.readdirSync(resolvedImagesDir).filter(f => /\.(jpe?g|png|gif|webp)$/i.test(f)).slice(0, 10) : [];
+
+    const checks = {};
+    for (const f of sampleFiles) {
+      checks[f] = fs.existsSync(path.join(resolvedImagesDir, f));
+    }
+
+    res.json({
+      resolvedImagesDir,
+      basedOn: fs.existsSync(imagesDirCwd) ? 'process.cwd()' : '__dirname fallback',
+      cwd: process.cwd(),
+      __dirname,
+      dirExists,
+      sampleListing: listing,
+      existsChecks: checks,
+      note: 'This endpoint is temporary for debugging static files and can be removed after verification.',
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'debug-failed', message: e.message });
+  }
+});
 
 // Mount routes
 app.use('/', routes);
