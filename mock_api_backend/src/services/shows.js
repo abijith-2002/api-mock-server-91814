@@ -1,8 +1,10 @@
 'use strict';
 
+const { buildAbsoluteUrl } = require('../utils/url');
+
 /**
  * Service that returns mock OTT categories and maps image filenames.
- * Generates dynamic poster URLs based on the incoming request.
+ * Generates dynamic poster URLs based on the incoming request, including proxy prefix if present.
  */
 class ShowsService {
   constructor() {
@@ -69,20 +71,6 @@ class ShowsService {
   }
 
   /**
-   * Build the base URL based on the request (protocol + host).
-   * Example: https://domain.tld or http://localhost:3001
-   * @param {import('express').Request} req
-   * @returns {string}
-   */
-  buildBaseUrl(req) {
-    // When behind a proxy (e.g., VS Code preview), express' trust proxy and req.secure/req.get('host')
-    // should reflect the client-facing protocol and host.
-    const protocol = req.secure ? 'https' : req.protocol;
-    const host = req.get('host'); // includes port if present
-    return `${protocol}://${host}`;
-  }
-
-  /**
    * PUBLIC_INTERFACE
    * Returns the array for a given category with dynamic poster URLs.
    * @param {string} category
@@ -92,10 +80,9 @@ class ShowsService {
   getCategory(category, req) {
     const items = this.data[category];
     if (!items) return null;
-    const baseUrl = this.buildBaseUrl(req);
     return items.map(({ name, file }) => ({
       name,
-      poster: `${baseUrl}/images/${file}`,
+      poster: buildAbsoluteUrl(req, `/images/${file}`),
     }));
   }
 }

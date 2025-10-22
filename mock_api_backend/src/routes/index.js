@@ -47,8 +47,8 @@ router.get('/', healthController.check.bind(healthController));
  *           example: Better Call Saul
  *         poster:
  *           type: string
- *           description: Dynamic URL to the poster image
- *           example: https://example.com/images/bcs.jpg
+ *           description: Dynamic URL to the poster image (will include proxy prefix in proxied environments, e.g., /proxy/3001)
+ *           example: https://example.com/proxy/3001/images/bcs.jpg
  */
 
 /**

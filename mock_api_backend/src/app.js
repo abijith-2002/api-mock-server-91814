@@ -33,11 +33,17 @@ app.use('/docs', swaggerUi.serve, (req, res, next) => {
   const fullHost = needsPort ? `${host}:${actualPort}` : host;
   protocol = req.secure ? 'https' : protocol;
 
+  // Detect proxy prefix from the incoming request
+  const originalUrl = req.originalUrl || '';
+  const proxyMatch = originalUrl.match(/^\/proxy\/\d{2,5}(?=\/|$)/i);
+  const proxyPrefix = proxyMatch ? proxyMatch[0] : '';
+
   const dynamicSpec = {
     ...swaggerSpec,
     servers: [
       {
-        url: `${protocol}://${fullHost}`,
+        // Include proxy prefix so that "Try it out" hits the correct path
+        url: `${protocol}://${fullHost}${proxyPrefix}`,
       },
     ],
   };
