@@ -27,13 +27,51 @@ function getProxyPrefix(req) {
 }
 
 /**
+ * Determine the preferred host for absolute URL generation.
+ * Preference order:
+ * - X-Forwarded-Host header (first value if comma-separated)
+ * - req.headers.host
+ * Then apply deterministic mapping:
+ * - If host is an AWS ELB (*.elb.amazonaws.com), rewrite to backend.kavia.app host
+ * - If host already matches backend.kavia.app, keep it
+ * Always return host possibly including port if appropriate.
+ * @param {import('express').Request} req
+ * @returns {string}
+ */
+function getPreferredHost(req) {
+  // Prefer x-forwarded-host when present
+  const xfh = req.get('x-forwarded-host');
+  const rawHost = (xfh ? xfh.split(',')[0].trim() : '') || req.get('host') || '';
+
+  // Known desired backend host
+  const desiredHost = 'kavia-alb-9aef674c-1653323432.backend.kavia.app';
+
+  // If it's already our desired host (or subdomain variations), keep it
+  if (rawHost.endsWith('.backend.kavia.app')) {
+    // Force specifically to desiredHost to avoid mismatches between different aliases
+    return desiredHost;
+  }
+
+  // If it's an ELB host pattern, rewrite to desiredHost
+  const isElb = /\.elb\.amazonaws\.com(?::\d+)?$/i.test(rawHost);
+  if (isElb) {
+    return desiredHost;
+  }
+
+  // Otherwise, return the original host
+  return rawHost;
+}
+
+/**
  * Build protocol + host string from request, honoring trust proxy to respect X-Forwarded headers.
+ * PUBLIC_INTERFACE
  * @param {import('express').Request} req
  * @returns {string}
  */
 function getOrigin(req) {
-  const protocol = req.secure ? 'https' : req.protocol;
-  const host = req.get('host'); // may include port
+  // Force https scheme for absolute URLs
+  const protocol = 'https';
+  const host = getPreferredHost(req); // may include port if forwarded
   return `${protocol}://${host}`;
 }
 
@@ -66,11 +104,11 @@ function ensureHttps(url) {
  * @returns {string}
  */
 function buildAbsoluteUrl(req, inputPath) {
-  let origin = getOrigin(req);
+  const origin = getOrigin(req);
   const proxyPrefix = getProxyPrefix(req);
   const path = inputPath.startsWith('/') ? inputPath : `/${inputPath}`;
   const absolute = `${origin}${proxyPrefix}${path}`;
-  // Normalize to https in case origin used http
+  // Normalize to https for safety (origin is already https)
   return ensureHttps(absolute);
 }
 
@@ -79,4 +117,6 @@ module.exports = {
   getOrigin,
   buildAbsoluteUrl,
   ensureHttps,
+  // Exported for potential future reuse/testing
+  getPreferredHost,
 };
