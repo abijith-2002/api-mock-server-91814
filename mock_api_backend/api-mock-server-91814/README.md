@@ -10,7 +10,13 @@ This is the initial README file for the project.
 If you are accessing through a different host or port, adjust the base accordingly:
 - Example deployed URL: `https://<domain-or-ip>:3001/images/bcs.jpg`
 
-All API responses that include `poster` URLs now point to `/images/<filename>` and will automatically include the VS Code proxy prefix when applicable (e.g., `https://<vscode-host>/proxy/3001/images/<filename>`).
+All API responses that include `poster` URLs now point to `/images/<filename>`.
+
+## HTTPS normalization for poster URLs
+
+- Poster URLs in API responses are always normalized to the https scheme.
+- If any upstream or intermediate logic yields `http://...`, the response will rewrite it to `https://...`.
+- Utility used: ensureHttps(url) in `mock_api_backend/src/utils/url.js`.
 
 ## API Docs
 

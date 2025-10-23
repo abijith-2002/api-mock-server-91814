@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildAbsoluteUrl } = require('../utils/url');
+const { buildAbsoluteUrl, ensureHttps } = require('../utils/url');
 
 /**
  * Service that returns mock OTT categories and maps image filenames.
@@ -73,6 +73,7 @@ class ShowsService {
   /**
    * PUBLIC_INTERFACE
    * Returns the array for a given category with dynamic poster URLs.
+   * Ensures URLs are always HTTPS even if an upstream proxy/request uses http.
    * @param {string} category
    * @param {import('express').Request} req
    * @returns {Array<{name: string, poster: string}>}
@@ -80,10 +81,13 @@ class ShowsService {
   getCategory(category, req) {
     const items = this.data[category];
     if (!items) return null;
-    return items.map(({ name, file }) => ({
-      name,
-      poster: buildAbsoluteUrl(req, `/images/${file}`),
-    }));
+    return items.map(({ name, file }) => {
+      const abs = buildAbsoluteUrl(req, `/images/${file}`);
+      return {
+        name,
+        poster: ensureHttps(abs),
+      };
+    });
   }
 }
 

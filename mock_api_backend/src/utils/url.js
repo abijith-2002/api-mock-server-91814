@@ -39,23 +39,44 @@ function getOrigin(req) {
 
 /**
  * PUBLIC_INTERFACE
+ * Ensure a URL string uses HTTPS scheme. If it starts with http:// it will be rewritten to https://.
+ * If it is protocol-relative (//host/path), it will be prefixed with https:.
+ * Non-string or empty inputs are returned as-is.
+ * @param {string} url
+ * @returns {string}
+ */
+function ensureHttps(url) {
+  if (typeof url !== 'string' || url.length === 0) return url;
+  if (url.startsWith('https://')) return url;
+  if (url.startsWith('http://')) return 'https://' + url.slice('http://'.length);
+  if (url.startsWith('//')) return 'https:' + url;
+  // If it's a relative url, leave it as-is (absolute building handles protocol)
+  return url;
+}
+
+/**
+ * PUBLIC_INTERFACE
  * Build an absolute URL for a given path, automatically inserting proxy prefix when detected.
  * - inputPath should start with a slash (e.g., /images/bcs.jpg)
  * - Result example (proxied): https://host/proxy/3001/images/bcs.jpg
  * - Result example (direct):  https://host/images/bcs.jpg
+ * Ensures the final URL uses https scheme.
  * @param {import('express').Request} req
  * @param {string} inputPath
  * @returns {string}
  */
 function buildAbsoluteUrl(req, inputPath) {
-  const origin = getOrigin(req);
+  let origin = getOrigin(req);
   const proxyPrefix = getProxyPrefix(req);
   const path = inputPath.startsWith('/') ? inputPath : `/${inputPath}`;
-  return `${origin}${proxyPrefix}${path}`;
+  const absolute = `${origin}${proxyPrefix}${path}`;
+  // Normalize to https in case origin used http
+  return ensureHttps(absolute);
 }
 
 module.exports = {
   getProxyPrefix,
   getOrigin,
   buildAbsoluteUrl,
+  ensureHttps,
 };
