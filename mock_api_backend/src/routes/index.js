@@ -1,6 +1,7 @@
 const express = require('express');
 const healthController = require('../controllers/health');
 const showsController = require('../controllers/shows');
+const featuredRoute = require('./featured');
 
 const router = express.Router();
 
@@ -184,6 +185,12 @@ router.get('/api/horror', showsController.horror.bind(showsController));
  *                 $ref: '#/components/schemas/ShowItem'
  */
 router.get('/api/drama', showsController.drama.bind(showsController));
+
+/**
+ * Mount featured route
+ * Provides GET /api/featured which returns a random featured item.
+ */
+router.use('/api/featured', featuredRoute);
 
 /**
  * @swagger
