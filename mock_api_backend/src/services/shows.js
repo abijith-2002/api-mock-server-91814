@@ -3,6 +3,24 @@
 const { buildAbsoluteUrl, ensureHttps } = require('../utils/url');
 
 /**
+ * In-place Fisher–Yates shuffle on a shallow copy of the input array.
+ * Does NOT mutate the original array reference passed to it.
+ * PUBLIC_INTERFACE
+ * @param {Array<any>} arr
+ * @returns {Array<any>} A new array with shuffled order
+ */
+function shuffleArray(arr) {
+  // Work on a shallow copy to avoid mutating shared in-memory data
+  const copy = Array.isArray(arr) ? arr.slice() : [];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    // swap copy[i] and copy[j]
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+/**
  * Service that returns mock OTT categories and maps image filenames.
  * Generates dynamic poster URLs based on the incoming request, including proxy prefix if present.
  */
@@ -72,7 +90,7 @@ class ShowsService {
 
   /**
    * PUBLIC_INTERFACE
-   * Returns the array for a given category with dynamic poster URLs.
+   * Returns the array for a given category with dynamic poster URLs, in randomized order per request.
    * Ensures URLs are always HTTPS even if an upstream proxy/request uses http.
    * @param {string} category
    * @param {import('express').Request} req
@@ -81,7 +99,12 @@ class ShowsService {
   getCategory(category, req) {
     const items = this.data[category];
     if (!items) return null;
-    return items.map(({ name, file }) => {
+
+    // Shuffle a shallow copy so original data is never mutated
+    const randomized = shuffleArray(items);
+
+    // Map to response objects with dynamic absolute poster URLs
+    return randomized.map(({ name, file }) => {
       const abs = buildAbsoluteUrl(req, `/images/${file}`);
       return {
         name,
