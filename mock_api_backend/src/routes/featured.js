@@ -23,7 +23,7 @@ const FEATURED_ITEMS = [
  * /api/featured:
  *   get:
  *     summary: Get a random featured item
- *     description: Returns one random object from the featured list.
+ *     description: Returns one random object from the featured list. Poster URL is normalized to the current request's base URL.
  *     tags:
  *       - Shows
  *     responses:
@@ -42,7 +42,7 @@ const FEATURED_ITEMS = [
  *                       example: MONSTER: The Ed Gein Story
  *                     poster:
  *                       type: string
- *                       example: url/images/monster_featured.jpg
+ *                       example: http://localhost:3001/images/monster_featured.jpg
  *       500:
  *         description: No featured items available
  *         content:
@@ -59,9 +59,30 @@ router.get('/', (req, res) => {
     if (!Array.isArray(FEATURED_ITEMS) || FEATURED_ITEMS.length === 0) {
       return res.status(500).json({ error: 'No featured items available' });
     }
+
+    // Compute request base URL: protocol + host (including port if provided by proxy/host header)
+    const protocol = req.protocol; // trust proxy is enabled at app level
+    const host = req.get('host'); // may include port
+    const base = `${protocol}://${host}`;
+
+    // Select a random featured item
     const idx = Math.floor(Math.random() * FEATURED_ITEMS.length);
     const selected = FEATURED_ITEMS[idx];
-    return res.status(200).json({ data: selected });
+
+    // Normalize poster URL:
+    // - If it starts with 'url/', replace with '<protocol>://<host>/'
+    // - If it starts with '/images' or 'images', prefix with base accordingly
+    let poster = selected.poster || '';
+
+    if (poster.startsWith('url/')) {
+      poster = poster.replace(/^url\//, `${base}/`);
+    } else if (poster.startsWith('/images/')) {
+      poster = `${base}${poster}`;
+    } else if (poster.startsWith('images/')) {
+      poster = `${base}/${poster}`;
+    }
+
+    return res.status(200).json({ data: { name: selected.name, poster } });
   } catch (err) {
     // Fallback error safety
     return res.status(500).json({ error: 'No featured items available' });
