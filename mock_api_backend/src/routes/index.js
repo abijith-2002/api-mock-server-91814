@@ -43,6 +43,9 @@ router.get('/', healthController.check.bind(healthController));
  *     ShowItem:
  *       type: object
  *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
  *         name:
  *           type: string
  *           example: Better Call Saul

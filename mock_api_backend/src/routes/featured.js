@@ -6,16 +6,17 @@ const router = express.Router();
 /**
  * Hardcoded featured items list as requested.
  * Minimal validation will ensure the array is non-empty before selecting a random item.
+ * Ensure each item has a stable id.
  */
 const FEATURED_ITEMS = [
-  { name: 'MONSTER: The Ed Gein Story', poster: 'url/images/monster_featured.jpg' },
-  { name: 'Peacemaker', poster: 'url/images/peacemaker_featured.jpg' },
+  { id: 1001, name: 'MONSTER: The Ed Gein Story', poster: 'url/images/monster_featured.jpg' },
+  { id: 1002, name: 'Peacemaker', poster: 'url/images/peacemaker_featured.jpg' },
 ];
 
 /**
  * PUBLIC_INTERFACE
  * GET /api/featured
- * Returns a random featured item wrapped in { data: { name, poster } }
+ * Returns a random featured item wrapped in { data: { id, name, poster } }
  */
 
 /**
@@ -37,6 +38,9 @@ const FEATURED_ITEMS = [
  *                 data:
  *                   type: object
  *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1001
  *                     name:
  *                       type: string
  *                       example: MONSTER: The Ed Gein Story
@@ -82,7 +86,7 @@ router.get('/', (req, res) => {
       poster = `${base}/${poster}`;
     }
 
-    return res.status(200).json({ data: { name: selected.name, poster } });
+    return res.status(200).json({ data: { id: selected.id, name: selected.name, poster } });
   } catch (err) {
     // Fallback error safety
     return res.status(500).json({ error: 'No featured items available' });
