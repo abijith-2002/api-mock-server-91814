@@ -1,6 +1,7 @@
 const express = require('express');
 const healthController = require('../controllers/health');
 const showsController = require('../controllers/shows');
+const infoController = require('../controllers/info');
 const featuredRoute = require('./featured');
 
 const router = express.Router();
@@ -53,6 +54,24 @@ router.get('/', healthController.check.bind(healthController));
  *           type: string
  *           description: Dynamic URL to the poster image (will include proxy prefix in proxied environments, e.g., /proxy/3001)
  *           example: https://example.com/proxy/3001/images/bcs.jpg
+ *     ShowInfo:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         title:
+ *           type: string
+ *           example: Better Call Saul
+ *         description:
+ *           type: string
+ *           example: The trials and tribulations of criminal lawyer Jimmy McGill...
+ *         seasons:
+ *           type: integer
+ *           example: 6
+ *         total_episodes:
+ *           type: integer
+ *           example: 63
  */
 
 /**
@@ -194,6 +213,57 @@ router.get('/api/drama', showsController.drama.bind(showsController));
  * Provides GET /api/featured which returns a random featured item.
  */
 router.use('/api/featured', featuredRoute);
+
+/**
+ * @swagger
+ * /api/info/{id}:
+ *   get:
+ *     summary: Get show info by id
+ *     description: Returns detailed info for a TV show by its stable id. Also supports query parameter ?id= as a fallback.
+ *     tags:
+ *       - Shows
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The stable id of the show (numeric string accepted).
+ *       - in: query
+ *         name: id
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: Optional id via query parameter as a fallback.
+ *     responses:
+ *       200:
+ *         description: The show info object
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ShowInfo'
+ *       400:
+ *         description: Missing id parameter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Missing required id parameter
+ *       404:
+ *         description: Info not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Info not found
+ */
+router.get('/api/info/:id?', infoController.get.bind(infoController));
 
 /**
  * @swagger
