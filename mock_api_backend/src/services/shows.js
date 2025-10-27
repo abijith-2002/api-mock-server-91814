@@ -4,8 +4,8 @@ const { buildAbsoluteUrl } = require('../utils/url');
 
 /**
  * Service that returns mock OTT categories and maps image filenames.
- * Generates dynamic poster URLs based on the incoming request, including proxy prefix if present.
- * Note: Always use buildAbsoluteUrl(req, '/images/<file>') so proxied environments (e.g. /proxy/:port) work.
+ * Generates poster URLs using a centralized absolute URL builder.
+ * Note: Always use buildAbsoluteUrl(req, '/images/<file>') to ensure '/proxy/3001' is present.
  */
 class ShowsService {
   constructor() {

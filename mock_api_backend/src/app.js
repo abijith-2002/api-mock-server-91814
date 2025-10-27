@@ -122,21 +122,22 @@ app.get('/__debug/static-check', (req, res) => {
 
 /**
  * PUBLIC_INTERFACE
- * Self-check endpoint to verify URL building and proxy detection.
- * Returns detected proxyPrefix and example image URL.
+ * Self-check endpoint to verify URL building behavior.
+ * Always expects '/proxy/3001' to be present after the origin.
  */
 app.get('/__selfcheck/url', (req, res) => {
   try {
     const { buildAbsoluteUrl } = require('./utils/url');
     const sample = buildAbsoluteUrl(req, '/images/bcs.jpg');
-    // Also echo originalUrl to help debug middleware order if needed
+
+    const hasProxySegment = /\/proxy\/3001\/images\/bcs\.jpg$/.test(sample);
     res.json({
-      ok: true,
-      originalUrl: req.originalUrl,
-      baseUrl: req.baseUrl || '',
-      url: req.url || '',
+      ok: hasProxySegment,
+      expectedSuffix: '/proxy/3001/images/bcs.jpg',
       detectedSampleImageUrl: sample,
-      note: 'If using a proxy (e.g., VS Code HTTPS preview), detectedSampleImageUrl should include /proxy/{port}.',
+      message: hasProxySegment
+        ? 'OK: URL contains the required /proxy/3001 segment.'
+        : 'FAIL: URL missing /proxy/3001 segment.',
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });

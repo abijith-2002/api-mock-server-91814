@@ -7,7 +7,7 @@ const options = {
       title: 'OTT Mock API',
       version: '1.0.0',
       description:
-        'Mock API for OTT app categories. Poster URLs are dynamically generated based on the current request host and will include proxy prefixes when detected. Static images are served from the /images path (e.g., /images/bcs.jpg). In proxied previews (e.g., VS Code HTTPS preview), routes appear under /proxy/3001 (e.g., https://host/proxy/3001/images/bcs.jpg).',
+        'Mock API for OTT app categories. Poster URLs are generated based on the current request host and will always include the fixed proxy segment /proxy/3001 before /images (e.g., https://host/proxy/3001/images/bcs.jpg).',
     },
     tags: [
       { name: 'Health', description: 'Service health check' },
