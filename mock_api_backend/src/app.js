@@ -5,6 +5,7 @@ const fs = require('fs');
 const routes = require('./routes');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../swagger');
+const { buildAbsoluteUrl } = require('./utils/url');
 
 // Initialize express app
 const app = express();
@@ -62,6 +63,14 @@ const imagesDirLocal = path.join(__dirname, '..', 'images');
 const resolvedImagesDir = fs.existsSync(imagesDirCwd) ? imagesDirCwd : imagesDirLocal;
 
 /**
+ * Determine the videos directory similarly.
+ * The repository stores videos under mock_api_backend/videos.
+ */
+const videosDirCwd = path.resolve(process.cwd(), 'mock_api_backend', 'videos');
+const videosDirLocal = path.join(__dirname, '..', 'videos');
+const resolvedVideosDir = fs.existsSync(videosDirCwd) ? videosDirCwd : videosDirLocal;
+
+/**
  * PUBLIC_INTERFACE
  * Serve static images from /images mapped to images directory at project root (mock_api_backend/images).
  * This provides stable URLs like /images/<filename>.
@@ -88,6 +97,56 @@ app.use(
     },
   })
 );
+
+/**
+ * PUBLIC_INTERFACE
+ * Serve static videos from /videos mapped to videos directory at project root (mock_api_backend/videos).
+ * This provides URLs like /videos/video.mp4.
+ */
+app.use(
+  '/videos',
+  express.static(resolvedVideosDir, {
+    maxAge: '1d',
+    extensions: ['mp4', 'webm', 'ogg'],
+    setHeaders: (res, filePath) => {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      const ext = path.extname(filePath).toLowerCase();
+      const m = {
+        '.mp4': 'video/mp4',
+        '.webm': 'video/webm',
+        '.ogg': 'video/ogg',
+      }[ext];
+      if (m) res.setHeader('Content-Type', m);
+    },
+  })
+);
+
+// Temporary debug endpoint for videos dir
+app.get('/__debug/videos-static-check', (req, res) => {
+  try {
+    const sampleFiles = ['video.mp4'];
+    const dirExists =
+      fs.existsSync(resolvedVideosDir) && fs.statSync(resolvedVideosDir).isDirectory();
+    const listing = dirExists
+      ? fs.readdirSync(resolvedVideosDir).filter(f => /\.(mp4|webm|ogg)$/i.test(f)).slice(0, 10)
+      : [];
+    const checks = {};
+    for (const f of sampleFiles) {
+      checks[f] = fs.existsSync(path.join(resolvedVideosDir, f));
+    }
+    res.json({
+      resolvedVideosDir,
+      basedOn: fs.existsSync(videosDirCwd) ? 'process.cwd()' : '__dirname fallback',
+      cwd: process.cwd(),
+      __dirname,
+      dirExists,
+      sampleListing: listing,
+      existsChecks: checks,
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'debug-failed', message: e.message });
+  }
+});
 
 /**
  * PUBLIC_INTERFACE

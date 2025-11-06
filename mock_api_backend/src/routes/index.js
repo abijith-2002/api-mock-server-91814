@@ -209,6 +209,45 @@ router.get('/api/horror', showsController.horror.bind(showsController));
 router.get('/api/drama', showsController.drama.bind(showsController));
 
 /**
+ * PUBLIC_INTERFACE
+ * GET /api/play
+ * Returns the absolute URL to the hosted demo video at /videos/video.mp4.
+ * The URL is computed from the incoming request without hardcoding hostnames,
+ * and will include any proxy prefix if present.
+ *
+ * @swagger
+ * /api/play:
+ *   get:
+ *     summary: Get absolute URL for the demo video
+ *     description: Returns an object containing the absolute URL to /videos/video.mp4 based on the current request host and protocol.
+ *     tags:
+ *       - Shows
+ *     responses:
+ *       200:
+ *         description: Absolute URL for video
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   example: https://example.com/proxy/3001/videos/video.mp4
+ */
+router.get('/api/play', (req, res) => {
+  try {
+    // Compute absolute URL respecting proxy prefix via buildAbsoluteUrl helper
+    const { buildAbsoluteUrl } = require('../utils/url');
+    const url = buildAbsoluteUrl(req, '/videos/video.mp4');
+    return res.status(200).json({ url });
+  } catch (e) {
+    // Even on error, provide a best-effort URL using protocol/host from Express
+    const fallback = `${req.protocol}://${req.get('host')}/videos/video.mp4`;
+    return res.status(200).json({ url: fallback });
+  }
+});
+
+/**
  * Mount featured route
  * Provides GET /api/featured which returns a random featured item.
  */
