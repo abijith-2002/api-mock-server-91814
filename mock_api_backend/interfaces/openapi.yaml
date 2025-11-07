@@ -1,0 +1,294 @@
+openapi: 3.0.0
+info:
+  title: OTT Mock API
+  version: "1.0.0"
+  description: >
+    Mock API for OTT app categories. Poster URLs are dynamically generated based on
+    the current request host and will include proxy prefixes when detected. Static images
+    are served from the /images path (e.g., /images/bcs.jpg). In proxied previews
+    (e.g., VS Code HTTPS preview), routes appear under /proxy/3001 (e.g., https://host/proxy/3001/images/bcs.jpg).
+servers:
+  - url: https://{host}
+    description: Default server; actual server URL is dynamically set in Swagger UI based on the incoming request
+    variables:
+      host:
+        default: example.com
+tags:
+  - name: Health
+    description: Service health check
+  - name: Shows
+    description: OTT categories and listings
+paths:
+  /:
+    get:
+      summary: Health endpoint
+      tags: [Health]
+      responses:
+        "200":
+          description: Service health check passed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  message:
+                    type: string
+                    example: Service is healthy
+                  timestamp:
+                    type: string
+                    format: date-time
+                  environment:
+                    type: string
+                    example: development
+  /api/trending:
+    get:
+      summary: Get trending shows
+      description: Returns a list of trending TV shows with dynamic poster URLs.
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of trending shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/continue_watching:
+    get:
+      summary: Get continue watching list
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of shows you are continuing to watch
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/action:
+    get:
+      summary: Get action shows
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of action shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/family:
+    get:
+      summary: Get family shows
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of family shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/comedy:
+    get:
+      summary: Get comedy shows
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of comedy shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/horror:
+    get:
+      summary: Get horror shows
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of horror shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/drama:
+    get:
+      summary: Get drama shows
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON array of drama shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+  /api/play:
+    get:
+      summary: Get absolute URL for the demo video
+      description: Returns an object containing the absolute URL to /videos/video.mp4 based on the current request host and protocol.
+      tags: [Shows]
+      responses:
+        "200":
+          description: Absolute URL for video
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    example: https://example.com/proxy/3001/videos/video.mp4
+  /api/featured:
+    get:
+      summary: Get a random featured item
+      description: Returns one random object from the featured list. Poster URL is normalized to the current request's base URL.
+      tags: [Shows]
+      responses:
+        "200":
+          description: A random featured item
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/FeaturedItem"
+        "500":
+          description: No featured items available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /api/info/{id}:
+    get:
+      summary: Get show info by id
+      description: Returns detailed info for a TV show by its stable id. Also supports query parameter ?id= as a fallback.
+      tags: [Shows]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: The stable id of the show (numeric string accepted).
+        - in: query
+          name: id
+          required: false
+          schema:
+            type: string
+          description: Optional id via query parameter as a fallback.
+      responses:
+        "200":
+          description: The show info object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowInfo"
+        "400":
+          description: Missing id parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+        "404":
+          description: Info not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+  /api/{category}:
+    get:
+      summary: Get shows by category
+      description: Generic endpoint to fetch any supported category by name.
+      tags: [Shows]
+      parameters:
+        - in: path
+          name: category
+          schema:
+            type: string
+          required: true
+          description: Category name (e.g. trending, action, family, comedy, horror, drama, continue_watching)
+      responses:
+        "200":
+          description: A JSON array of shows in the requested category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShowItem"
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorMessage"
+components:
+  schemas:
+    ShowItem:
+      type: object
+      properties:
+        id:
+            type: integer
+            example: 1
+        name:
+            type: string
+            example: Better Call Saul
+        poster:
+            type: string
+            description: Dynamic URL to the poster image (will include proxy prefix in proxied environments, e.g., /proxy/3001)
+            example: https://example.com/proxy/3001/images/bcs.jpg
+    ShowInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Better Call Saul
+        description:
+          type: string
+          example: The trials and tribulations of criminal lawyer Jimmy McGill...
+        seasons:
+          type: integer
+          example: 6
+        total_episodes:
+          type: integer
+          example: 63
+    FeaturedItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1001
+        name:
+          type: string
+          example: MONSTER: The Ed Gein Story
+        poster:
+          type: string
+          example: https://example.com/images/monster_featured.jpg
+    ErrorMessage:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Category not found
+security: []
+x-notes:
+  - All endpoints are public and require no authentication.
+  - Static assets are served at /images and /videos by the same server.
+  - The server forces HTTPS scheme in generated URLs and respects proxy prefixes.
