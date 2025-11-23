@@ -151,6 +151,29 @@ paths:
                   url:
                     type: string
                     example: https://example.com/proxy/3001/videos/video.mp4
+  /api/banner:
+    get:
+      summary: Get 5 random landscape banner image URLs
+      description: Reads images from images/landscape and returns up to 5 random absolute URLs, normalized to https and respecting proxy prefixes.
+      tags: [Shows]
+      responses:
+        "200":
+          description: A JSON object containing an array of banner URLs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  banners:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - https://example.com/proxy/3001/images/landscape/avatar_landscape.jpg
+                      - https://example.com/proxy/3001/images/landscape/stranger_things_landscape.jpg
+                      - https://example.com/proxy/3001/images/landscape/the_boys_landscape.jpg
+                      - https://example.com/proxy/3001/images/landscape/the_last_of_us_landscape.jpg
+                      - https://example.com/proxy/3001/images/landscape/dexter_landscape.jpg
   /api/featured:
     get:
       summary: Get a random featured item

@@ -3,6 +3,7 @@ const healthController = require('../controllers/health');
 const showsController = require('../controllers/shows');
 const infoController = require('../controllers/info');
 const featuredRoute = require('./featured');
+const bannerRoute = require('./banner');
 
 const router = express.Router();
 
@@ -252,6 +253,32 @@ router.get('/api/play', (req, res) => {
  * Provides GET /api/featured which returns a random featured item.
  */
 router.use('/api/featured', featuredRoute);
+
+/**
+ * @swagger
+ * /api/banner:
+ *   get:
+ *     summary: Get 5 random landscape banner image URLs
+ *     description: Returns up to 5 random image URLs from images/landscape. URLs are absolute, https-normalized, and include proxy prefixes when applicable.
+ *     tags:
+ *       - Shows
+ *     responses:
+ *       200:
+ *         description: A JSON object containing an array of banner URLs
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 banners:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example:
+ *                     - https://example.com/proxy/3001/images/landscape/avatar_landscape.jpg
+ *                     - https://example.com/proxy/3001/images/landscape/stranger_things_landscape.jpg
+ */
+router.use('/api/banner', bannerRoute);
 
 /**
  * @swagger
