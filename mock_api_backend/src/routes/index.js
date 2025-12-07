@@ -4,6 +4,7 @@ const showsController = require('../controllers/shows');
 const infoController = require('../controllers/info');
 const featuredRoute = require('./featured');
 const bannerRoute = require('./banner');
+const episodesRoute = require('./episodes');
 
 const router = express.Router();
 
@@ -279,6 +280,22 @@ router.use('/api/featured', featuredRoute);
  *                     - https://example.com/proxy/3001/images/landscape/stranger_things_landscape.jpg
  */
 router.use('/api/banner', bannerRoute);
+
+/**
+ * @swagger
+ * /api/episodes:
+ *   get:
+ *     summary: List seasons and episodes discovered under /videos
+ *     description: Scans the server's videos directory for seasons (S{n}) and episodes (E{m}) that contain both episode.mp4 and thumbnail.jpg.
+ *     tags:
+ *       - Shows
+ *     responses:
+ *       200:
+ *         description: Array of seasons with episodes
+ *       500:
+ *         description: Internal error scanning episodes
+ */
+router.use('/api/episodes', episodesRoute);
 
 /**
  * @swagger
