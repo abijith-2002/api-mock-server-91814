@@ -7,34 +7,6 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('../swagger');
 const { buildAbsoluteUrl } = require('./utils/url');
 
-// PUBLIC_INTERFACE
-// Expose raw OpenAPI JSON at /openapi.json for tooling integration.
-app.get('/openapi.json', (req, res) => {
-  try {
-    // Dynamically adjust servers to reflect current request and any proxy prefix
-    const host = req.get('host');
-    let protocol = req.protocol;
-    protocol = req.secure ? 'https' : protocol;
-
-    const originalUrl = req.originalUrl || '';
-    const proxyMatch = originalUrl.match(/^\/proxy\/\d{2,5}(?=\/|$)/i);
-    const proxyPrefix = proxyMatch ? proxyMatch[0] : '';
-
-    const dynamicSpec = {
-      ...swaggerSpec,
-      servers: [
-        {
-          url: `${protocol}://${host}${proxyPrefix}`,
-        },
-      ],
-    };
-    res.setHeader('Content-Type', 'application/json');
-    return res.status(200).json(dynamicSpec);
-  } catch (e) {
-    return res.status(500).json({ error: 'openapi-export-failed', message: e.message });
-  }
-});
-
 // Initialize express app
 const app = express();
 
