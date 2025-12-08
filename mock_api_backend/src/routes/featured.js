@@ -43,10 +43,10 @@ const FEATURED_ITEMS = [
  *                       example: 1001
  *                     name:
  *                       type: string
- *                       example: MONSTER: The Ed Gein Story
+ *                       example: "MONSTER: The Ed Gein Story"
  *                     poster:
  *                       type: string
- *                       example: http://localhost:3001/images/monster_featured.jpg
+ *                       example: "http://localhost:3001/images/monster_featured.jpg"
  *       500:
  *         description: No featured items available
  *         content:
@@ -56,7 +56,7 @@ const FEATURED_ITEMS = [
  *               properties:
  *                 error:
  *                   type: string
- *                   example: No featured items available
+ *                   example: "No featured items available"
  */
 router.get('/', (req, res) => {
   try {
