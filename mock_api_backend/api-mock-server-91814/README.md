@@ -20,4 +20,5 @@ All API responses that include `poster` URLs now point to `/images/<filename>`.
 
 ## API Docs
 
-Swagger UI is available at `/docs`. The server URL is dynamically adjusted based on the current request.
+- Swagger UI is available at `/docs`. The server URL is dynamically adjusted based on the current request.
+- Raw OpenAPI JSON is available at `/openapi.json` for tool integration (e.g., pointing the platform’s API explorer).
